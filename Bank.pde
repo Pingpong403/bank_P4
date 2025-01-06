@@ -3,9 +3,6 @@ import java.util.Random;
 
 Random rand = new Random();
 
-Die testDie1 = new Die(new Position(390, 300), new Color(rand.nextInt(0, 256), rand.nextInt(0, 256), rand.nextInt(0, 256)));
-Die testDie2 = new Die(new Position(510, 300), new Color(rand.nextInt(0, 256), rand.nextInt(0, 256), rand.nextInt(0, 256)));
-
 boolean displayFPS = true;
 
 // CUSTOM MOUSE CLICKING TOOL
@@ -23,7 +20,7 @@ void keyReleased() {
 }
 
 enum Phase {playerEntry, play, betweenRounds, gameDone};
-enum Command {start, removePlayer, diceValue, doubles, seven, undo, playerBank, restart};
+enum Command {start, removePlayer, diceValue, showDice, rollDice, doubles, seven, undo, playerBank, restart};
 
 GameControl gc = new GameControl();
 
@@ -46,14 +43,6 @@ void draw()
     fill(0, 255, 0);
     text((int)frameRate, 990, 30);
   }
-  
-  if (mouseChoose) {
-    testDie1.roll();
-    testDie2.roll();
-  }
-  
-  testDie1.drawDie();
-  testDie2.drawDie();
   
   mouseChoose = false;
 }

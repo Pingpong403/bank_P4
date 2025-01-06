@@ -11,11 +11,18 @@ class GameControl {
   private int inputAmt = 0;
   private Message message = new Message();
   private Vector<Action> actionsThisRound = new Vector<Action>();
+  private Vector<Die> dice = new Vector<Die>();
+  private boolean diceShow = false;
+  private Button hiddenDiceValue = new Button(-1000, -1000, Command.diceValue, "");
+  private Button hiddenDiceSeven = new Button(-1000, -1000, Command.seven, "");
+  private Button hiddenDiceDoubles = new Button(-1000, -1000, Command.doubles, "");
   
   public GameControl() {
     currentPhase = Phase.playerEntry;
     players = new Vector<Player>();
     gameButtons = new Vector<Button>();
+    dice.add(new Die(new Position(390, 300), new Color(rand.nextInt(0, 256), rand.nextInt(0, 256), rand.nextInt(0, 256))));
+    dice.add(new Die(new Position(510, 300), new Color(rand.nextInt(0, 256), rand.nextInt(0, 256), rand.nextInt(0, 256))));
   }
   
   private void addPlayer(String name) {
@@ -63,6 +70,8 @@ class GameControl {
           gameButtons.clear();
           gameButtons.addAll(getNumberButtons());
           gameButtons.add(getUndoButton());
+          gameButtons.add(getShowDiceButton());
+          gameButtons.add(getRollDiceButton());
           
           // Clear the undo queue
           actionsThisRound.clear();
@@ -206,6 +215,11 @@ class GameControl {
         text("Round " + (round == 0 ? "1" : String.valueOf(round)), 500, 200);
         textSize(40);
         text("Bank: " + String.valueOf(bank), 500, 560);
+        if (diceShow) {
+          for (Die die : dice) {
+            die.drawDie();
+          }
+        }
         break;
       case betweenRounds:
         fill(0);
@@ -214,6 +228,11 @@ class GameControl {
         text("Round " + (round == 0 ? "1" : String.valueOf(round)) + " over!", 500, 200);
         textSize(40);
         text("Bank: " + String.valueOf(bank), 500, 560);
+        if (diceShow) {
+          for (Die die : dice) {
+            die.drawDie();
+          }
+        }
         break;
       case gameDone:
         noStroke();
@@ -357,6 +376,44 @@ class GameControl {
         }
         round = 0;
         break;
+      case showDice:
+        if (!diceShow) {
+          diceShow = true;
+          for (Button gameButton : gameButtons) {
+            if (gameButton.getCommand() == Command.rollDice) {
+              gameButton.activate();
+            }
+          }
+        }
+        else {
+          diceShow = false;
+          for (Button gameButton : gameButtons) {
+            if (gameButton.getCommand() == Command.rollDice) {
+              gameButton.deactivate();
+            }
+          }
+        }
+        break;
+      case rollDice:
+        int sum = 0;
+        for (Die die : dice) {
+          die.roll();
+          sum += die.getValue();
+        }
+        // Only two special cases past 3 inputs:
+          // a seven is rolled,
+        if (sum == 7 && inputAmt > 2) {
+          doButtonAction(hiddenDiceSeven);
+        }
+        // or doubles are rolled.
+        else if (dice.get(0).getValue() == dice.get(1).getValue() && inputAmt > 2) {
+          doButtonAction(hiddenDiceDoubles);
+        }
+        else {
+          hiddenDiceValue.setValue(sum);
+          doButtonAction(hiddenDiceValue);
+        }
+        break;
       default:
         break;
     }
@@ -400,6 +457,31 @@ class GameControl {
       Command.undo,
       0,
       "Undo"
+    );
+  }
+  
+  private Button getShowDiceButton() {
+    return new Button(
+      840,
+      300,
+      150,
+      30,
+      Command.showDice,
+      0,
+      "Show Dice"
+    );
+  }
+  
+  private Button getRollDiceButton() {
+    return new Button(
+      840,
+      340,
+      150,
+      30,
+      Command.rollDice,
+      0,
+      "Roll Dice",
+      diceShow
     );
   }
   
