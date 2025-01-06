@@ -4,6 +4,7 @@ class Player {
   private int score = 0;
   private boolean banked = false;
   private Button playerButton = new Button();
+  private boolean inTheLead = false;
   
   public Player() {
     name = "Player";
@@ -18,15 +19,18 @@ class Player {
   }
   
   public String getName() { return name; }
+  public int getPosition() { return position; }
   public int getScore() { return score; }
   public boolean hasBanked() { return banked; }
   public Button getPlayerButton() { return playerButton; }
+  public boolean isInTheLead() { return inTheLead; }
   
   public void setName(String name) { this.name = name; }
   public void setPosition(int position) { this.position = position; }
   public void setScore(int score) { this.score = score; }
   public void setBanked(boolean banked) { this.banked = banked; }
   public void setPlayerButton(Button playerButton) { this.playerButton = playerButton; }
+  public void setInTheLead(boolean inTheLead) { this.inTheLead = inTheLead; }
   
   public void updateButtonValue() {
     playerButton.setValue(position);

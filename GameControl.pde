@@ -3,6 +3,7 @@ class GameControl {
   private Vector<Player> players;
   private Vector<Player> playersToRemove = new Vector<Player>();
   private Vector<Button> gameButtons;
+  private Vector<Button> buttonsToRemove = new Vector<Button>();
   private boolean transitioning = true;
   private String currentName = "";
   private int round = 0;
@@ -63,6 +64,9 @@ class GameControl {
           gameButtons.addAll(getNumberButtons());
           gameButtons.add(getUndoButton());
           
+          // Clear the undo queue
+          actionsThisRound.clear();
+          
           // Only if going from playerEntry to play, change removePlayer buttons to playerBank buttons
           if (round == 0) {
             for (Player player : players) {
@@ -74,13 +78,36 @@ class GameControl {
               player.setScore(0);
             }
           }
+          else {
+            // Reactivate all the buttons we need to reactivate
+            for (Button gameButton : gameButtons) {
+              if (gameButton.getValue() != 0) {
+                gameButton.activate();
+              }
+              if (gameButton.getValue() == 7) {
+                gameButton.setTextColor(new Color(0));
+              }
+            }
+            for (Player player : players) {
+              player.getPlayerButton().activate();
+            }
+          }
           // No one starts the new round banked
           for (Player player : players) {
             player.setBanked(false);
           }
+          inputAmt = 0;
+          bank = 0;
           round++;
           transitioning = false;
         }
+        // If we undo an action after the round is over, get rid of the "Next Round" button
+        for (Button gameButton : gameButtons) {
+          if (gameButton.getCommand() == Command.start) {
+            buttonsToRemove.add(gameButton);
+          }
+        }
+        
         boolean everyoneBanked = true;
         for (Player player : players) {
           if (!player.hasBanked()) {
@@ -89,11 +116,12 @@ class GameControl {
         }
         if (everyoneBanked) {
           currentPhase = Phase.betweenRounds;
+          transitioning = true;
         }
         break;
       case betweenRounds:
-        // deactivate all buttons except for Undo, preparing for the next round
         if (transitioning) {
+          // Deactivate all buttons except for Undo, preparing for the next round
           for (Player player : players) {
             player.getPlayerButton().deactivate();
           }
@@ -108,6 +136,7 @@ class GameControl {
         break;
     }
     
+    // Everything that happens no matter the phase
     if (mousePressed) {
       for (Button b : gameButtons) {
         if (b.isMouseWithin() && !b.isPressed()){
@@ -142,7 +171,10 @@ class GameControl {
       players.remove(player);
     }
     playersToRemove.clear();
-    
+    for (Button button : buttonsToRemove) {
+      gameButtons.remove(button);
+    }
+    playersToRemove.clear();
     message.age();
   }
   
@@ -166,19 +198,40 @@ class GameControl {
         text("Bank: " + String.valueOf(bank), 500, 560);
         break;
       case betweenRounds:
+        fill(0);
+        textAlign(CENTER);
+        textSize(60);
+        text("Round " + (round == 0 ? "1" : String.valueOf(round)) + " over!", 500, 200);
+        textSize(40);
+        text("Bank: " + String.valueOf(bank), 500, 560);
         break;
       default:
         break;
     }
+    
+    // Everything that shows no matter the phase
     textAlign(LEFT);
     textSize(30);
-    fill(0);
-    for (int i = 0; i < players.size(); i++) {
-      String playerInfo = players.get(i).getName();
+    
+    boolean playerInLead = false;
+    int highestScore = getHighestScore();
+    if (highestScore != 0) {
+      playerInLead = true;
+      highestScore = getHighestScore();
+    }
+    for (Player player : players) {
+      String playerInfo = player.getName();
       if (currentPhase != Phase.playerEntry) {
-        playerInfo += " - " + String.valueOf(players.get(i).getScore());
+        playerInfo += " - " + String.valueOf(player.getScore());
       }
-      text(playerInfo, 45, 35 + (i * 35));
+      Color playerColor = new Color(0);
+      if (playerInLead) {
+        if (player.getScore() == highestScore) {
+          playerColor = new Color(0, 0, 255);
+        }
+      }
+      playerColor.setFill();
+      text(playerInfo, 45, 35 + (player.getPosition() * 35));
     }
     for (Button button : gameButtons) {
       button.display();
@@ -250,6 +303,7 @@ class GameControl {
         for (Player player : players) {
           player.getPlayerButton().deactivate();
         }
+        transitioning = true;
         actionsThisRound.add(new Action(Command.seven, 0));
         break;
       case undo:
@@ -311,13 +365,13 @@ class GameControl {
   
   private Button getNextRoundButton() {
     return new Button(
-      910,
-      660,
-      80,
-      30,
-      Command.undo,
+      425,
+      460,
+      150,
+      40,
+      Command.start,
       0,
-      "Undo"
+      "Next Round"
     );
   }
   
@@ -346,8 +400,29 @@ class GameControl {
               player.getPlayerButton().activate();
             }
           }
+          for (Button gameButton : gameButtons) {
+            if (gameButton.getValue() != 2 && gameButton.getValue() != 12) {
+              gameButton.activate();
+            }
+          }
           break;
         case playerBank:
+          // If this was the last player to bank, get the phase back to play and reactivate buttons
+          if (currentPhase == Phase.betweenRounds) {
+            currentPhase = Phase.play;
+            for (Button gameButton : gameButtons) {
+              if (inputAmt < 3) {
+                if (gameButton.getValue() != 0) {
+                  gameButton.activate();
+                }
+              }
+              else {
+                if (gameButton.getValue() != 2 && gameButton.getValue() != 12) {
+                  gameButton.activate();
+                }
+              }
+            }
+          }
           // Remove the current bank from the player and reactivate their button
           players.get(latestAction.getValue()).addScore(-1 * bank);
           players.get(latestAction.getValue()).getPlayerButton().activate();
@@ -374,5 +449,15 @@ class GameControl {
       }
       actionsThisRound.remove(latestAction);
     }
+  }
+  
+  private int getHighestScore() {
+    int highestScore = 0;
+    for (Player player : players) {
+      if (player.getScore() > highestScore) {
+        highestScore = player.getScore();
+      }
+    }
+    return highestScore;
   }
 }
