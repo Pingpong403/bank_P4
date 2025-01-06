@@ -67,11 +67,12 @@ class GameControl {
           // Clear the undo queue
           actionsThisRound.clear();
           
-          // Only if going from playerEntry to play, change removePlayer buttons to playerBank buttons
+          // Change removePlayer buttons to playerBank buttons and reset scores.
           if (round == 0) {
             for (Player player : players) {
               player.getPlayerButton().setCommand(Command.playerBank);
               player.getPlayerButton().setText("$$");
+              player.getPlayerButton().activate();
             }
             // This allows for multiple games without having to restart the simulation
             for (Player player : players) {
@@ -129,6 +130,15 @@ class GameControl {
             if (button.getCommand() != Command.undo) button.deactivate();
           }
           gameButtons.add(getNextRoundButton());
+          transitioning = false;
+        }
+        break;
+      case gameDone:
+        if (transitioning) {
+          gameButtons.clear();
+          // Add the Play Again buttons
+          gameButtons.add(getPlayAgainButton(true));
+          gameButtons.add(getPlayAgainButton(false));
           transitioning = false;
         }
         break;
@@ -205,6 +215,13 @@ class GameControl {
         textSize(40);
         text("Bank: " + String.valueOf(bank), 500, 560);
         break;
+      case gameDone:
+        noStroke();
+        fill(0);
+        textSize(50);
+        textAlign(CENTER);
+        text("Play Again?", 500, 450);
+        break;
       default:
         break;
     }
@@ -252,6 +269,10 @@ class GameControl {
         else {
           message.setText("Please add at least one player before starting!");
           message.refresh();
+        }
+        if (round == 15) {
+          currentPhase = Phase.gameDone;
+          transitioning = true;
         }
         break;
       case removePlayer:
@@ -317,6 +338,25 @@ class GameControl {
         
         actionsThisRound.add(new Action(Command.playerBank, b.getValue()));
         break;
+      case restart:
+        if (b.getValue() == 0) {
+          // A value of 0 means new players.
+          currentPhase = Phase.playerEntry;
+          transitioning = true;
+          gameButtons.clear();
+          for (Player player : players) {
+            player.getPlayerButton().setText("X");
+            player.getPlayerButton().setCommand(Command.removePlayer);
+            player.getPlayerButton().activate();
+          }
+        }
+        else if (b.getValue() == 1) {
+          // A value of 1 means same players.
+          currentPhase = Phase.play;
+          transitioning = true;
+        }
+        round = 0;
+        break;
       default:
         break;
     }
@@ -365,13 +405,25 @@ class GameControl {
   
   private Button getNextRoundButton() {
     return new Button(
-      425,
+      415,
       460,
-      150,
+      170,
       40,
       Command.start,
       0,
-      "Next Round"
+      round == 15 ? "Finish Game" : "Next Round"
+    );
+  }
+  
+  private Button getPlayAgainButton(boolean samePlayers) {
+    return new Button(
+      (samePlayers ? 295 : 505),
+      460,
+      200,
+      40,
+      Command.restart,
+      (samePlayers ? 1 : 0),
+      (samePlayers ? "Same Players" : "New Players")
     );
   }
   

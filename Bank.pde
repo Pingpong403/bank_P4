@@ -16,8 +16,8 @@ void keyReleased() {
   // set to false when a key is pressed
 }
 
-enum Phase {playerEntry, play, betweenRounds};
-enum Command {start, removePlayer, diceValue, doubles, seven, undo, playerBank};
+enum Phase {playerEntry, play, betweenRounds, gameDone};
+enum Command {start, removePlayer, diceValue, doubles, seven, undo, playerBank, restart};
 
 GameControl gc = new GameControl();
 
