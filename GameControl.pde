@@ -298,8 +298,9 @@ class GameControl {
         // Remove the player and the button associated with them
         playersToRemove.add(players.get(b.getValue()));
         
-        // All other buttons underneath need their heights adjusted 
+        // All other buttons and player names underneath need their heights adjusted 
         for (int i = b.getValue() + 1; i < players.size(); i++) {
+          players.get(i).setPosition(i - 1);
           players.get(i).getPlayerButton().setValue(i - 1);
           int y = 10 + ((i - 1) * 35);
           players.get(i).getPlayerButton().setY(y);
