@@ -72,6 +72,7 @@ class GameControl {
           gameButtons.add(getUndoButton());
           gameButtons.add(getShowDiceButton());
           gameButtons.add(getRollDiceButton());
+          gameButtons.add(getNewDiceButton());
           
           // Clear the undo queue
           actionsThisRound.clear();
@@ -381,7 +382,8 @@ class GameControl {
         if (!diceShow) {
           diceShow = true;
           for (Button gameButton : gameButtons) {
-            if (gameButton.getCommand() == Command.rollDice) {
+            if (gameButton.getCommand() == Command.rollDice ||
+                gameButton.getCommand() == Command.newDice) {
               gameButton.activate();
             }
           }
@@ -389,7 +391,8 @@ class GameControl {
         else {
           diceShow = false;
           for (Button gameButton : gameButtons) {
-            if (gameButton.getCommand() == Command.rollDice) {
+            if (gameButton.getCommand() == Command.rollDice ||
+                gameButton.getCommand() == Command.newDice) {
               gameButton.deactivate();
             }
           }
@@ -414,6 +417,11 @@ class GameControl {
           hiddenDiceValue.setValue(sum);
           doButtonAction(hiddenDiceValue);
         }
+        break;
+      case newDice:
+        dice.clear();
+        dice.add(new Die(new Position(390, 300), new Color(rand.nextInt(0, 256), rand.nextInt(0, 256), rand.nextInt(0, 256))));
+        dice.add(new Die(new Position(510, 300), new Color(rand.nextInt(0, 256), rand.nextInt(0, 256), rand.nextInt(0, 256))));
         break;
       default:
         break;
@@ -469,7 +477,7 @@ class GameControl {
       30,
       Command.showDice,
       0,
-      "Show Dice"
+      "Toggle Dice"
     );
   }
   
@@ -482,6 +490,19 @@ class GameControl {
       Command.rollDice,
       0,
       "Roll Dice",
+      diceShow
+    );
+  }
+  
+  private Button getNewDiceButton() {
+    return new Button(
+      840,
+      380,
+      150,
+      30,
+      Command.newDice,
+      0,
+      "New Dice",
       diceShow
     );
   }

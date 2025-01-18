@@ -20,7 +20,7 @@ void keyReleased() {
 }
 
 enum Phase {playerEntry, play, betweenRounds, gameDone};
-enum Command {start, removePlayer, diceValue, showDice, rollDice, doubles, seven, undo, playerBank, restart};
+enum Command {start, removePlayer, diceValue, showDice, rollDice, newDice, doubles, seven, undo, playerBank, restart};
 
 GameControl gc = new GameControl();
 

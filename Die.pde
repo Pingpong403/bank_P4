@@ -24,16 +24,20 @@ class Die {
     int x = pos.getX();
     int y = pos.getY();
     
-    //c.setStroke();
-    //c.setFillA(10);
-    //rect(x, y, 100, 100, 20);
-    
+    // Draw actual die
+    int additiveColor = c.getR() + c.getG() + c.getB();
     noStroke();
+    if (additiveColor / 3 >= 220) {
+      strokeWeight(1);
+      stroke(0);
+    }
     c.setFill();
     rect(x, y, 100, 100, 30);
-    int additiveColor = c.getR() + c.getG() + c.getB();
+    
+    // Draw dots based on die value
+    noStroke();
     fill(255);
-    if ((float)additiveColor / 3.0 >= 128.0) {
+    if (additiveColor / 3 >= 128) {
       fill(0);
     }
     switch (value) {
@@ -67,13 +71,16 @@ class Die {
   }
   
   private void drawCenterDot(int x, int y) {
+    noStroke();
     circle(x + 50, y + 50, 20);
   }
   private void drawDiagDots(int x, int y, boolean rotated) {
+    noStroke();
     circle(x + (rotated ? 75 : 25), y + 25, 20);
     circle(x + (rotated ? 25 : 75), y + 75, 20);
   }
   private void drawHoriDots(int x, int y) {
+    noStroke();
     circle(x + 25, y + 50, 20);
     circle(x + 75, y + 50, 20);
   }

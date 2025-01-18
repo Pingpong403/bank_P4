@@ -1,5 +1,4 @@
-class Button
-{
+class Button {
   private int x;
   private int y;
   private int w;
@@ -11,8 +10,7 @@ class Button
   private boolean active = true;
   private Color textColor = new Color(0);
   
-  public Button()
-  {
+  public Button() {
     x = 0;
     y = 0;
     w = 90;
@@ -20,8 +18,7 @@ class Button
     c = Command.start;
   }
   
-  public Button(int x, int y, Command c, String text)
-  {
+  public Button(int x, int y, Command c, String text) {
     this.x = x;
     this.y = y;
     w = 90;
@@ -30,8 +27,7 @@ class Button
     this.text = text;
   }
   
-  public Button(int x, int y, int w, int h, Command c, int value, String text)
-  {
+  public Button(int x, int y, int w, int h, Command c, int value, String text) {
     this.x = x;
     this.y = y;
     this.w = w;
@@ -41,8 +37,7 @@ class Button
     this.text = text;
   }
   
-  public Button(int x, int y, int w, int h, Command c, int value, String text, boolean active)
-  {
+  public Button(int x, int y, int w, int h, Command c, int value, String text, boolean active) {
     this.x = x;
     this.y = y;
     this.w = w;
@@ -53,8 +48,7 @@ class Button
     this.active = active;
   }
   
-  public boolean isMouseWithin()
-  {
+  public boolean isMouseWithin() {
     if (active && mouseX > x && mouseX < x + w && mouseY > y && mouseY < y + h && text != "")
     {
       return true;
@@ -75,8 +69,8 @@ class Button
   public void setText(String text) { this.text = text; }
   public void setTextColor(Color textColor) { this.textColor = textColor; }
   
-  public void display()
-  {
+  public void display() {
+    strokeWeight(1);
     if (text != "")
     {
       if (active) {
