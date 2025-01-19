@@ -15,7 +15,7 @@ class Player {
     this.name = name;
     this.position = position;
     int y = 10 + (position * 35);
-    playerButton = new Button(10, y, 30, 30, Command.removePlayer, position, "X");
+    playerButton = new Button(new Position(10, y), 30, 30, Command.removePlayer, position, "X");
   }
   
   public String getName() { return name; }

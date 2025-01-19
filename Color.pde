@@ -50,11 +50,11 @@ class Color {
     fill(r, g, b, a);
   }
   
-  public void setStrokeA(int a) {
+  public void setStroke(int a) {
     stroke(r, g, b, a);
   }
   
-  public void setFillA(int a) {
+  public void setFill(int a) {
     fill(r, g, b, a);
   }
 }

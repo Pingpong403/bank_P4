@@ -1,21 +1,26 @@
 class GameControl {
+  // General attributes
   private Phase currentPhase;
   private Vector<Player> players;
   private Vector<Player> playersToRemove = new Vector<Player>();
   private Vector<Button> gameButtons;
   private Vector<Button> buttonsToRemove = new Vector<Button>();
   private boolean transitioning = true;
+  
+  // Phase attributes
   private String currentName = "";
   private int round = 0;
   private int bank = 0;
   private int inputAmt = 0;
+  
+  // Misc attributes
   private Message message = new Message();
   private Vector<Action> actionsThisRound = new Vector<Action>();
   private Vector<Die> dice = new Vector<Die>();
   private boolean diceShow = false;
-  private Button hiddenDiceValue = new Button(-1000, -1000, Command.diceValue, "");
-  private Button hiddenDiceSeven = new Button(-1000, -1000, Command.seven, "");
-  private Button hiddenDiceDoubles = new Button(-1000, -1000, Command.doubles, "");
+  private Button hiddenDiceValue = new Button(new Position(-1000, -1000), Command.diceValue, "");
+  private Button hiddenDiceSeven = new Button(new Position(-1000, -1000), Command.seven, "");
+  private Button hiddenDiceDoubles = new Button(new Position(-1000, -1000), Command.doubles, "");
   
   public GameControl() {
     currentPhase = Phase.playerEntry;
@@ -31,17 +36,23 @@ class GameControl {
   }
   
   public void interact() {
+    // Messages should not carry over phases.
     if (transitioning) {
       message.setTimeLeft(0);
     }
+    
+    // The following cases control interaction during each specific phase.
     switch (currentPhase) {
       case playerEntry:
         if (transitioning) {
-          Button playButton = new Button(465, 400, 70, 30, Command.start, 0, "Start");
+          // Add the play button
+          Button playButton = new Button(new Position(465, 400), 70, 30, Command.start, 0, "Start");
           gameButtons.add(playButton);
+          
           transitioning = false;
         }
         
+        // ENTER to add a name
         if (keyCode == ENTER && keyReady) {
           if (currentName != "") {
             addPlayer(currentName.trim());
@@ -53,6 +64,7 @@ class GameControl {
           }
           keyReady = false;
         }
+        // BACKSPACE to delete the latest letter typed
         if (keyCode == BACKSPACE && keyReady) {
           if (currentName != "") {
             currentName = currentName.substring(0, currentName.length() - 1);
@@ -66,7 +78,7 @@ class GameControl {
         break;
       case play:
         if (transitioning) {
-          // Clear all the buttons and add back the undo and dice buttons
+          // Clear all the game buttons and add the undo and dice buttons.
           gameButtons.clear();
           gameButtons.addAll(getNumberButtons());
           gameButtons.add(getUndoButton());
@@ -74,42 +86,42 @@ class GameControl {
           gameButtons.add(getRollDiceButton());
           gameButtons.add(getNewDiceButton());
           
-          // Clear the undo queue
+          // Clear the undo queue.
           actionsThisRound.clear();
           
-          // Change removePlayer buttons to playerBank buttons and reset scores.
           if (round == 0) {
+            // Change removePlayer buttons to playerBank buttons and reset scores.
             for (Player player : players) {
               player.getPlayerButton().setCommand(Command.playerBank);
               player.getPlayerButton().setText("$$");
-              player.getPlayerButton().activate();
             }
-            // This allows for multiple games without having to restart the simulation
+            // This allows for multiple games without having to restart the simulation.
             for (Player player : players) {
               player.setScore(0);
             }
           }
           else {
-            // Reactivate all the buttons we need to reactivate
+            // Reactivate all the buttons we need to reactivate.
             for (Button gameButton : gameButtons) {
+              // All game buttons with a value of 0 (specifically the Doubles and all dice buttons) stay deactivated.
               if (gameButton.getValue() != 0) {
                 gameButton.activate();
               }
+              // The number 7 button will be red if we just restarted the game from round 15.
               if (gameButton.getValue() == 7) {
                 gameButton.setTextColor(new Color(0));
               }
             }
-            for (Player player : players) {
-              player.getPlayerButton().activate();
-            }
           }
-          // No one starts the new round banked
+          // No one starts the new round banked. Also, we need to reactivate the players' buttons.
           for (Player player : players) {
             player.setBanked(false);
+            player.getPlayerButton().activate();
           }
           inputAmt = 0;
           bank = 0;
           round++;
+          
           transitioning = false;
         }
         // If we undo an action after the round is over, get rid of the "Next Round" button
@@ -119,12 +131,14 @@ class GameControl {
           }
         }
         
+        // Check if everyone has banked.
         boolean everyoneBanked = true;
         for (Player player : players) {
           if (!player.hasBanked()) {
             everyoneBanked = false;
           }
         }
+        // If so, on to the next round!
         if (everyoneBanked) {
           currentPhase = Phase.betweenRounds;
           transitioning = true;
@@ -132,31 +146,38 @@ class GameControl {
         break;
       case betweenRounds:
         if (transitioning) {
-          // Deactivate all buttons except for Undo, preparing for the next round
+          // Deactivate all buttons except for Undo, preparing for the next round.
           for (Player player : players) {
             player.getPlayerButton().deactivate();
           }
           for (Button button : gameButtons) {
             if (button.getCommand() != Command.undo) button.deactivate();
           }
+          // Add the option to move on to the next round.
           gameButtons.add(getNextRoundButton());
+          
           transitioning = false;
         }
+        // Nothing to do here but listen to the button presses.
         break;
       case gameDone:
         if (transitioning) {
+          // Since the game is done, all that's left is to add the option to play again!
           gameButtons.clear();
-          // Add the Play Again buttons
           gameButtons.add(getPlayAgainButton(true));
           gameButtons.add(getPlayAgainButton(false));
+          
           transitioning = false;
         }
+        // Nothing to do here but listen to the button presses.
         break;
       default:
         break;
     }
     
-    // Everything that happens no matter the phase
+    // Here is everything that happens no matter the phase:
+    
+    // Listen for mouse presses. Simply holding down the mouse selects a button, but releasing it on a button chooses it.
     if (mousePressed) {
       for (Button b : gameButtons) {
         if (b.isMouseWithin() && !b.isPressed()){
@@ -187,6 +208,9 @@ class GameControl {
         }
       }
     }
+    
+    // Dispose of any players or buttons we need to.
+    // Not doing it here causes a concurrentModificationException.
     for (Player player : playersToRemove) {
       players.remove(player);
     }
@@ -194,7 +218,8 @@ class GameControl {
     for (Button button : buttonsToRemove) {
       gameButtons.remove(button);
     }
-    playersToRemove.clear();
+    buttonsToRemove.clear();
+    
     message.age();
   }
   
@@ -246,21 +271,24 @@ class GameControl {
         break;
     }
     
-    // Everything that shows no matter the phase
-    textAlign(LEFT);
-    textSize(30);
+    // Everything that shows no matter the phase:
     
+    // Find out who is in the lead.
     boolean playerInLead = false;
     int highestScore = getHighestScore();
     if (highestScore != 0) {
       playerInLead = true;
-      highestScore = getHighestScore();
     }
+    // Draw player info.
+    textAlign(LEFT);
+    textSize(30);
     for (Player player : players) {
       String playerInfo = player.getName();
+      // Include their score if it isn't player entry phase.
       if (currentPhase != Phase.playerEntry) {
         playerInfo += " - " + String.valueOf(player.getScore());
       }
+      // Each player's info is black, unless they are in the lead (blue).
       Color playerColor = new Color(0);
       if (playerInLead) {
         if (player.getScore() == highestScore) {
@@ -270,18 +298,24 @@ class GameControl {
       playerColor.setFill();
       text(playerInfo, 45, 35 + (player.getPosition() * 35));
     }
+    
+    // Display all the game and player buttons.
     for (Button button : gameButtons) {
       button.display();
     }
     for (Player player : players) {
       player.getPlayerButton().display();
     }
+    
+    // Display the message.
     message.displayMessage();
   }
   
   private void doButtonAction(Button b) {
+    // Each button action is controlled here when the player chooses its corresponding button.
     switch (b.getCommand()) {
       case start:
+        // Determine if we can move on from the player entry phase. Display error message if needed.
         if (players.size() > 0) {
           currentPhase = Phase.play;
           transitioning = true;
@@ -290,16 +324,17 @@ class GameControl {
           message.setText("Please add at least one player before starting!");
           message.refresh();
         }
+        // The "Finish Game" button sends us here as well, so handle that case.
         if (round == 15) {
           currentPhase = Phase.gameDone;
           transitioning = true;
         }
         break;
       case removePlayer:
-        // Remove the player and the button associated with them
+        // Remove the player associated with their button.
         playersToRemove.add(players.get(b.getValue()));
         
-        // All other buttons and player names underneath need their heights adjusted 
+        // All players underneath need their positions, values, and heights adjusted.
         for (int i = b.getValue() + 1; i < players.size(); i++) {
           players.get(i).setPosition(i - 1);
           players.get(i).getPlayerButton().setValue(i - 1);
@@ -308,8 +343,10 @@ class GameControl {
         }
         break;
       case diceValue:
-        // Increase inputAmt now rather than later
+        // Increase inputAmt now rather than later.
         inputAmt++;
+        
+        // If we have not already done three inputs, then 7 is a special case. Otherwise add the value to the bank.
         if (inputAmt < 4) {
           if (b.getValue() == 7) bank += 70;
           else bank += b.getValue();
@@ -318,7 +355,7 @@ class GameControl {
           bank += b.getValue();
         }
         
-        // We need to activate/deactivate buttons here
+        // Fix button appearance/functionality if we have just undone our 3rd action.
         if (inputAmt >= 3) {
           for (Button gameButton : gameButtons) {
             if (gameButton.getValue() == 2 || gameButton.getValue() == 12) {
@@ -333,52 +370,63 @@ class GameControl {
             }
           }
         }
+        
+        // This action can be undone.
         actionsThisRound.add(new Action(Command.diceValue, b.getValue()));
         break;
       case doubles:
+        // Very simple action.
         inputAmt++;
         bank *= 2;
+        
+        // This action can be undone.
         actionsThisRound.add(new Action(Command.doubles, 0));
         break;
       case seven:
+        // Immediately advance phases and deny bank actions.
         currentPhase = Phase.betweenRounds;
         for (Player player : players) {
           player.getPlayerButton().deactivate();
         }
         transitioning = true;
+        
+        // This action can be undone.
         actionsThisRound.add(new Action(Command.seven, 0));
         break;
       case undo:
         undoAction();
         break;
       case playerBank:
-        // Add current bank to player's score and deactivate their button
+        // Add current bank to player's score, bank them, and deactivate their button.
         players.get(b.getValue()).addScore(bank);
         players.get(b.getValue()).bank();
         players.get(b.getValue()).getPlayerButton().deactivate();
         
+        // This action can be undone.
         actionsThisRound.add(new Action(Command.playerBank, b.getValue()));
         break;
       case restart:
+        // A value of 0 means we'll be entering new players.
         if (b.getValue() == 0) {
-          // A value of 0 means new players.
           currentPhase = Phase.playerEntry;
           transitioning = true;
           gameButtons.clear();
+          // Revert players back to their player entry states, keeping their scores.
           for (Player player : players) {
             player.getPlayerButton().setText("X");
             player.getPlayerButton().setCommand(Command.removePlayer);
             player.getPlayerButton().activate();
           }
         }
+        // A value of 1 means we'll be playing again with the same players.
         else if (b.getValue() == 1) {
-          // A value of 1 means same players.
           currentPhase = Phase.play;
           transitioning = true;
         }
         round = 0;
         break;
-      case showDice:
+      case toggleDice:
+        // We are brute-forcing this toggling to ensure the "Toggle Dice" and other dice buttons stay in phase with each other.
         if (!diceShow) {
           diceShow = true;
           for (Button gameButton : gameButtons) {
@@ -399,20 +447,22 @@ class GameControl {
         }
         break;
       case rollDice:
+        // Here we will be treating the dice (and the values they roll) as if they are buttons we press.
         int sum = 0;
         for (Die die : dice) {
           die.roll();
           sum += die.getValue();
         }
         // Only two special cases past 3 inputs:
-          // a seven is rolled,
+        // a seven is rolled,
         if (sum == 7 && inputAmt > 2) {
           doButtonAction(hiddenDiceSeven);
         }
         // or doubles are rolled.
-        else if (dice.get(0).getValue() == dice.get(1).getValue() && inputAmt > 2) {
+        else if (dice.get(0).getValue() == dice.get(1).getValue() && inputAmt >= 3) {
           doButtonAction(hiddenDiceDoubles);
         }
+        // Otherwise, we just add the value shown on the dice.
         else {
           hiddenDiceValue.setValue(sum);
           doButtonAction(hiddenDiceValue);
@@ -428,25 +478,29 @@ class GameControl {
     }
   }
   
+  
+  // ALL THE "GET _ BUTTON(S)" METHODS
   private Vector<Button> getNumberButtons() {
     Vector<Button> buttons = new Vector<Button>();
     int buttonWidth = 30;
     int buttonHeight = 30;
     int spacing = 10;
-    int startX = (1000 - (5 * buttonWidth + 4 * spacing)) / 2; // O O O O O
-    int startY = 700 - 3 * buttonHeight - spacing - 20;        // ...
+    int startX = (1000 - (5 * buttonWidth  + 4 * spacing)) / 2;
+    int startY =   700 - (3 * buttonHeight + 2 * spacing) - 10;
   
-    // grid of number buttons
+    // Procedurally generate the grid of number buttons based on the parameters above.
     for (int i = 2; i <= 12; i++) {
       int alt_i = i - 2;
       int x = startX + (alt_i % 5) * (buttonWidth + spacing);
       int y = startY + (alt_i / 5) * (buttonHeight + spacing);
-      buttons.add(new Button(x, y, buttonWidth, buttonHeight, Command.diceValue, i, String.valueOf(i)));
+      buttons.add(new Button(new Position(x, y), buttonWidth, buttonHeight, Command.diceValue, i, String.valueOf(i)));
     }
-    // doubles button
+    // The doubles button will take up the remaining space in the row.
     buttons.add(new Button(
-      startX + (11 % 5) * (buttonWidth + spacing),
-      startY + (11 / 5) * (buttonHeight + spacing),
+      new Position(
+        startX + (11 % 5) * (buttonWidth + spacing),
+        startY + (11 / 5) * (buttonHeight + spacing)
+      ),
       buttonWidth * 4 + spacing * 3,
       buttonHeight,
       Command.doubles,
@@ -459,8 +513,10 @@ class GameControl {
   
   private Button getUndoButton() {
     return new Button(
-      910,
-      660,
+      new Position(
+        910,
+        660
+      ),
       80,
       30,
       Command.undo,
@@ -471,11 +527,13 @@ class GameControl {
   
   private Button getShowDiceButton() {
     return new Button(
-      840,
-      300,
+      new Position(
+        840,
+        300
+      ),
       150,
       30,
-      Command.showDice,
+      Command.toggleDice,
       0,
       "Toggle Dice"
     );
@@ -483,8 +541,10 @@ class GameControl {
   
   private Button getRollDiceButton() {
     return new Button(
-      840,
-      340,
+      new Position(
+        840,
+        340
+      ),
       150,
       30,
       Command.rollDice,
@@ -496,8 +556,10 @@ class GameControl {
   
   private Button getNewDiceButton() {
     return new Button(
-      840,
-      380,
+      new Position(
+        840,
+        380
+      ),
       150,
       30,
       Command.newDice,
@@ -509,8 +571,10 @@ class GameControl {
   
   private Button getNextRoundButton() {
     return new Button(
-      415,
-      460,
+      new Position(
+        415,
+        460
+      ),
       170,
       40,
       Command.start,
@@ -521,8 +585,10 @@ class GameControl {
   
   private Button getPlayAgainButton(boolean samePlayers) {
     return new Button(
-      (samePlayers ? 295 : 505),
-      460,
+      new Position(
+        (samePlayers ? 295 : 505),
+        460
+      ),
       200,
       40,
       Command.restart,
@@ -538,32 +604,46 @@ class GameControl {
     }
     else {
       Action latestAction = actionsThisRound.lastElement();
-      // diceValue, doubles, seven, and playerBank can be undone
+      // Only the diceValue, doubles, seven, and playerBank actions can be undone. Double-enforce that here.
       switch (latestAction.getCommand()) {
         case diceValue:
+          // value: the value to be subtracted
+          
+          // Remove the value from the bank and remove an input. A seven rolled is the only exception here.
           if (latestAction.getValue() == 7) bank -= 70;
           else bank -= latestAction.getValue();
           inputAmt--;
           break;
         case doubles:
+          // value: unnecessary
+          
+          // Simply divide the bank by half and remove an input.
           bank /= 2;
           inputAmt--;
           break;
         case seven:
+          // value: unnecessary
+          
+          // The "seven" command always ends the current round and can only happen after 3 inputs.
           currentPhase = Phase.play;
           for (Player player : players) {
+            // Only players who didn't bank before the seven can bank after this undo.
             if (!player.hasBanked()) {
               player.getPlayerButton().activate();
             }
           }
           for (Button gameButton : gameButtons) {
+            // Reactivate buttons that were deactivated during the "seven" action and need to be reactivated.
+            // 2 and 12 can only be used when the "seven" action can't be made.
             if (gameButton.getValue() != 2 && gameButton.getValue() != 12) {
               gameButton.activate();
             }
           }
           break;
         case playerBank:
-          // If this was the last player to bank, get the phase back to play and reactivate buttons
+          // value: player to un-bank
+          
+          // If this was the last player to bank, get the phase back to play and reactivate the necessary buttons.
           if (currentPhase == Phase.betweenRounds) {
             currentPhase = Phase.play;
             for (Button gameButton : gameButtons) {
@@ -579,6 +659,7 @@ class GameControl {
               }
             }
           }
+          
           // Remove the current bank from the player and reactivate their button
           players.get(latestAction.getValue()).addScore(-1 * bank);
           players.get(latestAction.getValue()).getPlayerButton().activate();
@@ -589,6 +670,7 @@ class GameControl {
           message.refresh();
           break;
       }
+      // If we just undid the 3rd action, fix buttons.
       if (inputAmt < 3) {
           for (Button gameButton : gameButtons) {
             if (gameButton.getValue() == 2 || gameButton.getValue() == 12) {
@@ -603,6 +685,7 @@ class GameControl {
             }
           }
       }
+      // Remove this action from the queue.
       actionsThisRound.remove(latestAction);
     }
   }

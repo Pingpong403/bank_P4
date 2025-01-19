@@ -1,6 +1,5 @@
 class Button {
-  private int x;
-  private int y;
+  private Position pos;
   private int w;
   private int h;
   private Command c;
@@ -11,25 +10,22 @@ class Button {
   private Color textColor = new Color(0);
   
   public Button() {
-    x = 0;
-    y = 0;
+    pos = new Position();
     w = 90;
     h = 40;
     c = Command.start;
   }
   
-  public Button(int x, int y, Command c, String text) {
-    this.x = x;
-    this.y = y;
+  public Button(Position pos, Command c, String text) {
+    this.pos = pos;
     w = 90;
     h = 40;
     this.c = c;
     this.text = text;
   }
   
-  public Button(int x, int y, int w, int h, Command c, int value, String text) {
-    this.x = x;
-    this.y = y;
+  public Button(Position pos, int w, int h, Command c, int value, String text) {
+    this.pos = pos;
     this.w = w;
     this.h = h;
     this.c = c;
@@ -37,9 +33,8 @@ class Button {
     this.text = text;
   }
   
-  public Button(int x, int y, int w, int h, Command c, int value, String text, boolean active) {
-    this.x = x;
-    this.y = y;
+  public Button(Position pos, int w, int h, Command c, int value, String text, boolean active) {
+    this.pos = pos;
     this.w = w;
     this.h = h;
     this.c = c;
@@ -49,8 +44,7 @@ class Button {
   }
   
   public boolean isMouseWithin() {
-    if (active && mouseX > x && mouseX < x + w && mouseY > y && mouseY < y + h && text != "")
-    {
+    if (active && mouseX > pos.getX() && mouseX < pos.getX() + w && mouseY > pos.getY() && mouseY < pos.getY() + h && text != "") {
       return true;
     }
     return false;
@@ -61,9 +55,9 @@ class Button {
   public boolean isPressed() { return pressed; }
   public boolean isActive() { return active; }
   
-  public void setY(int y) {
-    this.y = y;
-  }
+  public void setPos(Position pos) { this.pos = pos; }
+  public void setX(int x) { pos.setX(x); }
+  public void setY(int y) { pos.setY(y); }
   public void setCommand(Command c) { this.c = c; }
   public void setValue(int value) { this.value = value; }
   public void setText(String text) { this.text = text; }
@@ -81,16 +75,16 @@ class Button {
         stroke(100, 100);
         fill(200, 100);
       }
-      rect(x, y, w, h); // w90 h40
+      rect(pos.getX(), pos.getY(), w, h); // w90 h40
       if (active) {
         textColor.setFill();
       }
       else {
-        textColor.setFillA(100);
+        textColor.setFill(100);
       }
       textAlign(CENTER);
       textSize((float)h * 0.75);
-      text(text, x + (float)w / 2, y + (float)h * 0.75);
+      text(text, pos.getX() + (float)w / 2, pos.getY() + (float)h * 0.75);
       pressed = false;
     }
   }

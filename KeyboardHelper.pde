@@ -1,6 +1,6 @@
-static class KeyboardHelper
-{  
+static class KeyboardHelper {
   static public String charToStr(char c) {
+    // Only allow letters
     switch (c) {
       case 'a':
         return "a";

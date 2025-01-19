@@ -19,9 +19,12 @@ void keyReleased() {
   // set to false when a key is pressed
 }
 
+// Phase enumerates all the possible phases of play.
 enum Phase {playerEntry, play, betweenRounds, gameDone};
-enum Command {start, removePlayer, diceValue, showDice, rollDice, newDice, doubles, seven, undo, playerBank, restart};
+// Command enumerates all the possible commands a button can have.
+enum Command {start, removePlayer, diceValue, toggleDice, rollDice, newDice, doubles, seven, undo, playerBank, restart};
 
+// Holds all the game logic
 GameControl gc = new GameControl();
 
 void setup()
@@ -36,7 +39,7 @@ void draw()
   gc.interact();
   gc.drawGUI();
   
-  // FPS is displayed above everything else
+  // FPS is displayed on top of everything else.
   if (displayFPS) {
     textSize(30);
     textAlign(RIGHT);

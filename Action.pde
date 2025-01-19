@@ -4,7 +4,7 @@ class Action {
   
   public Action() {
     c = Command.diceValue;
-    value = 2;
+    value = 0;
   }
   
   public Action(Command c, int value) {

@@ -1,4 +1,4 @@
-// The sole purpose of the class is to allow me to manipulate a player's score
+// The sole purpose of this class is to allow me to easily manipulate a player's score.
 class Score {
   private int score;
   
