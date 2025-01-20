@@ -44,10 +44,10 @@ class Button {
   }
   
   public boolean isMouseWithin() {
-    if (active && mouseX > pos.getX() && mouseX < pos.getX() + w && mouseY > pos.getY() && mouseY < pos.getY() + h && text != "") {
-      return true;
-    }
-    return false;
+    return active &&
+           mouseX > pos.getX() && mouseX < pos.getX() + w &&
+           mouseY > pos.getY() && mouseY < pos.getY() + h &&
+           text != "";
   }
   
   public Command getCommand() { return c; }
