@@ -59,8 +59,7 @@ class GameControl {
             currentName = "";
           }
           else {
-            message.setText("Please type a name!");
-            message.refresh();
+            message.flash("Please type a name!");
           }
           keyReady = false;
         }
@@ -321,8 +320,7 @@ class GameControl {
           transitioning = true;
         }
         else {
-          message.setText("Please add at least one player before starting!");
-          message.refresh();
+          message.flash("Please add at least one player before starting!");
         }
         // The "Finish Game" button sends us here as well, so handle that case.
         if (round == 15) {
@@ -599,11 +597,19 @@ class GameControl {
   
   private void undoAction() {
     if (actionsThisRound.size() == 0) {
-      message.setText("No actions to undo!");
-      message.refresh();
+      message.flash("No actions to undo!");
     }
     else {
       Action latestAction = actionsThisRound.lastElement();
+      // This will remove any dummy actions that may make it into the queue.
+      while (latestAction.getCommand() == Command.diceValue && latestAction.getValue() == 0) {
+        actionsThisRound.remove(latestAction);
+        if (actionsThisRound.size() == 0) {
+          message.flash("No actions to undo!");
+          break;
+        }
+        latestAction = actionsThisRound.lastElement();
+      }
       // Only the diceValue, doubles, seven, and playerBank actions can be undone. Double-enforce that here.
       switch (latestAction.getCommand()) {
         case diceValue:
@@ -666,8 +672,7 @@ class GameControl {
           players.get(latestAction.getValue()).setBanked(false);
           break;
         default:
-          message.setText("Error undoing action...");
-          message.refresh();
+          message.flash("Error undoing action...");
           break;
       }
       // If we just undid the 3rd action, fix buttons.

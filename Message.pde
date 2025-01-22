@@ -24,7 +24,11 @@ class Message {
   
   public boolean isActive() { return timeLeft > 0; }
   
-  public void refresh() { timeLeft = 300; }
+  public void flash(String text) {
+    setText(text);
+    refresh();
+  }
+  private void refresh() { timeLeft = 300; }
   public void displayMessage() {
     textSize(25);
     fill(255, 0, 0);
