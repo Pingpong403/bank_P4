@@ -54,7 +54,7 @@ class GameControl {
         
         // ENTER to add a name
         if (keyCode == ENTER && keyReady) {
-          if (currentName != "") {
+          if (currentName.trim() != "") {
             addPlayer(currentName.trim());
             currentName = "";
           }
@@ -63,7 +63,7 @@ class GameControl {
           }
           keyReady = false;
         }
-        // BACKSPACE to delete the latest letter typed
+        // BACKSPACE to delete the last letter typed
         if (keyCode == BACKSPACE && keyReady) {
           if (currentName != "") {
             currentName = currentName.substring(0, currentName.length() - 1);
@@ -77,7 +77,7 @@ class GameControl {
         break;
       case play:
         if (transitioning) {
-          // Clear all the game buttons and add the undo and dice buttons.
+          // Clear all the game buttons and add the number, undo, and dice buttons.
           gameButtons.clear();
           gameButtons.addAll(getNumberButtons());
           gameButtons.add(getUndoButton());
@@ -345,9 +345,8 @@ class GameControl {
         inputAmt++;
         
         // If we have not already done three inputs, then 7 is a special case. Otherwise add the value to the bank.
-        if (inputAmt < 4) {
-          if (b.getValue() == 7) bank += 70;
-          else bank += b.getValue();
+        if (inputAmt < 4 && b.getValue() == 7) {
+          bank += 70;
         }
         else {
           bank += b.getValue();
@@ -457,7 +456,7 @@ class GameControl {
           doButtonAction(hiddenDiceSeven);
         }
         // or doubles are rolled.
-        else if (dice.get(0).getValue() == dice.get(1).getValue() && inputAmt >= 3) {
+        else if (dice.get(0).getValue() == dice.get(1).getValue() && inputAmt > 2) {
           doButtonAction(hiddenDiceDoubles);
         }
         // Otherwise, we just add the value shown on the dice.
